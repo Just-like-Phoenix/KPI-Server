@@ -1,6 +1,6 @@
 ﻿namespace KPI_Server.Classes
 {
-    internal class Task
+    public class Task
     {
         public int utid { get; set; }
         public int ueid { get; set; }

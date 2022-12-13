@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KPI_Server.Classes
 {
-    internal class Person : Employee
+    public class Person : Employee
     {
         public static Person person;
         public static Person SetPerson(Person p) => person = p;

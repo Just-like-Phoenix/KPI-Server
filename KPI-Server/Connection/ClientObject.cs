@@ -49,9 +49,7 @@ namespace KPI_Server.Connection
                         login = recevarr[1];
                         password = recevarr[2];
                         ConnectionFactory connectionFactory = ConnectionFactory.GetConnection();
-                        connectionFactory.GetDataToLogIn();
-                        User user = User.GetUser();
-                        List<User> userarray = user.GetUsersArray();
+                        List<User> userarray = connectionFactory.GetDataToLogIn();
 
                         for (int i = 0; i < userarray.Count; i++)
                         {
@@ -64,17 +62,17 @@ namespace KPI_Server.Connection
                             {
                                 if (userarray[i].position == "meneger")
                                 {
-                                    sendmsg = "meneger";
+                                    sendmsg = "meneger&" + userarray[i].uuid;
                                     break;
                                 }
                                 if (userarray[i].position == "worker")
                                 {
-                                    sendmsg = "worker";
+                                    sendmsg = "worker&" + userarray[i].uuid;
                                     break;
                                 }
                                 if (userarray[i].position == "NULL")
                                 {
-                                    sendmsg = "error";
+                                    sendmsg = "error&" + userarray[i].uuid;
                                     break;
                                 }
                             }
@@ -95,11 +93,11 @@ namespace KPI_Server.Connection
                         await Writer.WriteLineAsync(sendmsg);
                         await Writer.FlushAsync();
                     }
-                    if (recevmsg.StartsWith("select_persons"))
+                    if (recevmsg.StartsWith("select_worker_persons"))
                     {
                         List<string> tosend;
                         ConnectionFactory connectionFactory = ConnectionFactory.GetConnection();
-                        tosend = connectionFactory.SelectPersons();
+                        tosend = connectionFactory.SelectWorkerPersons();
 
                         Writer.WriteLine(tosend.Count());
                         Writer.Flush();
@@ -110,10 +108,20 @@ namespace KPI_Server.Connection
                             Writer.Flush();
                         }
                     }
-                    if (recevmsg.StartsWith("select_all"))
+                    if (recevmsg.StartsWith("select_person_by_uuid"))
                     {
-                        await Writer.WriteLineAsync(sendmsg);
-                        await Writer.FlushAsync();
+                        string tosend;
+                        string[] recevarr = recevmsg.Split("|&|");
+                        ConnectionFactory connectionFactory = ConnectionFactory.GetConnection();
+                        tosend = connectionFactory.SelectPersonByUUID(int.Parse(recevarr[1]));
+                        Writer.WriteLine(tosend);
+                        Writer.Flush();
+                    }
+                    if (recevmsg.StartsWith("delete_person_by_uuid"))
+                    {
+                        string[] recevarr = recevmsg.Split("|&|");
+                        ConnectionFactory connectionFactory = ConnectionFactory.GetConnection();
+                        connectionFactory.DeletePersonByUUID(int.Parse(recevarr[1]));
                     }
                     if (recevmsg.StartsWith("exit")) break;
                 }

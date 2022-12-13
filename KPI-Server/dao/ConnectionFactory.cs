@@ -35,44 +35,62 @@ namespace KPI_Server.dao
             }
         }
 
-        public void GetDataToLogIn() 
+        public List<User> GetDataToLogIn() 
         {
             sqlCommand.CommandText = "SELECT * FROM user RIGHT JOIN employee ON user.uuid = employee.uuid;";
             MySqlDataReader reader = sqlCommand.ExecuteReader();
-
             List<User> users = new List<User>();
-            User user = new User();
-            User.SetUser(user);
-
             while (reader.Read())
             {
+                User user = new User();
                 user.uuid = (int)reader["uuid"];
                 user.login = (string)reader["login"];
                 user.password = (string)reader["password"];
                 user.position = (string)reader["position"];
                 users.Add(user);
             }
-            user.SetUsersArray(users);
             reader.Close();
+            return users;
         }
 
-        public List<string> SelectPersons() 
+        public List<string> SelectWorkerPersons() 
         { 
             List<string> persons = new List<string>();
 
-            sqlCommand.CommandText = "SELECT * FROM person;";
+            sqlCommand.CommandText = "SELECT * FROM kpi.person RIGHT JOIN employee ON person.uuid = employee.uuid;";
             MySqlDataReader reader = sqlCommand.ExecuteReader();
 
             string tmp;
 
             while (reader.Read())
-            {
-                tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["email"] + "&" + reader["telephone"];
-                persons.Add(tmp);
+            {   
+                if((string)reader["position"] == "worker")
+                {
+                    tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["email"] + "&" + reader["telephone"];
+                    persons.Add(tmp);
+                }
             }
             reader.Close();
 
             return persons;
+        }
+
+        public string SelectPersonByUUID(int uuid)
+        {
+            string tmp;
+            sqlCommand.CommandText = "SELECT * FROM person WHERE uuid = @uuid;";
+            sqlCommand.Parameters.AddWithValue("@uuid", uuid);
+            MySqlDataReader reader = sqlCommand.ExecuteReader();
+            reader.Read();
+            tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["email"] + "&" + reader["telephone"];
+            reader.Close();
+            return tmp;
+        }
+
+        public void DeletePersonByUUID(int uuid)
+        {
+            sqlCommand.CommandText = "DELETE FROM user WHERE (uuid = '" + uuid + "');";
+            sqlCommand.ExecuteNonQuery();
         }
 
         public bool AddWorkerUserPerson(string login, string password, string name, string surname, string patronymic, string email, string telephone, string position, string salary) 

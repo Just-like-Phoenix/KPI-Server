@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KPI_Server.Classes
 {
-    internal class Employee : Task
+    public class Employee : Task
     {
         public int uuid { get; set; }
         public int upid { get; set; }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace KPI_Server.Classes
 {
-    internal class User : Person
+    public class User : Person
     {
         public static User user;
         public static User SetUser(User u) => user = u;
