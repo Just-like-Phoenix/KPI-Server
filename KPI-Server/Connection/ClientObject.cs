@@ -51,11 +51,11 @@ namespace KPI_Server.Connection
                         ConnectionFactory connectionFactory = ConnectionFactory.GetConnection();
                         List<User> userarray = connectionFactory.GetDataToLogIn();
 
-                        for (int i = 0; i < userarray.Count; i++)
+                        for (int i = 0; i <= userarray.Count; i++)
                         {
                             if (login == "root" && password == "root")
                             {
-                                sendmsg = "root";
+                                sendmsg = "root&000000";
                                 break;
                             }
                             if (login == userarray[i].login && password == userarray[i].password)

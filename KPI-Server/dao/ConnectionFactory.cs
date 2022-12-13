@@ -78,8 +78,7 @@ namespace KPI_Server.dao
         public string SelectPersonByUUID(int uuid)
         {
             string tmp;
-            sqlCommand.CommandText = "SELECT * FROM person WHERE uuid = @uuid;";
-            sqlCommand.Parameters.AddWithValue("@uuid", uuid);
+            sqlCommand.CommandText = "SELECT * FROM person WHERE uuid = '" + uuid + "';";
             MySqlDataReader reader = sqlCommand.ExecuteReader();
             reader.Read();
             tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["email"] + "&" + reader["telephone"];
@@ -97,9 +96,7 @@ namespace KPI_Server.dao
         {
             int uuid, upid, ueid;
 
-            sqlCommand.CommandText = "INSERT INTO user (`login`, `password`) VALUES (@login, @password);";
-            sqlCommand.Parameters.AddWithValue("@login", login);
-            sqlCommand.Parameters.AddWithValue("@password", password);
+            sqlCommand.CommandText = "INSERT INTO user (`login`, `password`) VALUES ('" + login + "', '" + password + "');";
             sqlCommand.ExecuteNonQuery();
 
             sqlCommand.CommandText = "select * from user where uuid=(SELECT LAST_INSERT_ID());";
@@ -108,13 +105,7 @@ namespace KPI_Server.dao
             uuid = (int)userreader["uuid"];
             userreader.Close();
 
-            sqlCommand.CommandText = "INSERT INTO person (`uuid`, `name`, `surname`, `patronymic`, `email`, `telephone`) VALUES (@uuid, @name, @surname, @patronymic, @email, @telephone);";
-            sqlCommand.Parameters.AddWithValue("@uuid", uuid);
-            sqlCommand.Parameters.AddWithValue("@name", name);
-            sqlCommand.Parameters.AddWithValue("@surname", surname);
-            sqlCommand.Parameters.AddWithValue("@patronymic", patronymic);
-            sqlCommand.Parameters.AddWithValue("@email", email);
-            sqlCommand.Parameters.AddWithValue("@telephone", telephone);
+            sqlCommand.CommandText = "INSERT INTO person (`uuid`, `name`, `surname`, `patronymic`, `email`, `telephone`) VALUES ('" + uuid + "', '" + name + "', '" + surname + "', '" + patronymic + "', '" + email + "', '" + telephone + "');";
             sqlCommand.ExecuteNonQuery();
 
             sqlCommand.CommandText = "select * from person where upid=(SELECT LAST_INSERT_ID());";
@@ -123,10 +114,7 @@ namespace KPI_Server.dao
             upid = (int)personreader["upid"];
             personreader.Close();
 
-            sqlCommand.CommandText = "INSERT INTO `kpi`.`employee` (`uuid`, `upid`, `position`, `salary`) VALUES (@uuid, @upid, @position, @salary);";
-            sqlCommand.Parameters.AddWithValue("@upid", upid);
-            sqlCommand.Parameters.AddWithValue("@position", position);
-            sqlCommand.Parameters.AddWithValue("@salary", salary);
+            sqlCommand.CommandText = "INSERT INTO `kpi`.`employee` (`uuid`, `upid`, `position`, `salary`) VALUES ('" + uuid + "', '" + upid + "', '" + position + "', '" + salary + "');";
             sqlCommand.ExecuteNonQuery();
         
             return true;
