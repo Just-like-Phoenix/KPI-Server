@@ -100,10 +100,27 @@ namespace KPI_Server.dao
         public string SelectPersonByUUID(int uuid)
         {
             string tmp;
-            sqlCommand.CommandText = "SELECT * FROM person WHERE uuid = '" + uuid + "';";
+            sqlCommand.CommandText = "SELECT * FROM person INNER JOIN employee ON person.uuid = employee.uuid and person.uuid = '" + uuid + "';";
             MySqlDataReader reader = sqlCommand.ExecuteReader();
             reader.Read();
-            tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["email"] + "&" + reader["telephone"];
+            tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["salary"] + "&" + reader["award"] + "&" + reader["email"] + "&" + reader["telephone"];
+            reader.Close();
+            return tmp;
+        }
+
+        public void AddTask() 
+        {
+        
+        }
+
+        public string SelectTasksByUUID(int uuid)
+        {
+            string tmp;
+            sqlCommand.CommandText = "SELECT * FROM task WHERE uuid = '" + uuid + "';";
+            MySqlDataReader reader = sqlCommand.ExecuteReader();
+            reader.Read();
+
+            tmp = reader["utid"] + "&" + reader["ueid"] + "&" + reader["uuid"] + "&" + reader["upid"] + "&" + reader["task_text"] + "&" + reader["task_count_to_do"] + "&" + reader["task_count_of_completed"] + "&" + reader["task_start_date"] + "&" + reader["task_end_date"];
             reader.Close();
             return tmp;
         }
