@@ -57,7 +57,7 @@ namespace KPI_Server.dao
         { 
             List<string> persons = new List<string>();
 
-            sqlCommand.CommandText = "SELECT * FROM kpi.person RIGHT JOIN employee ON person.uuid = employee.uuid;";
+            sqlCommand.CommandText = "SELECT * FROM person RIGHT JOIN employee ON person.uuid = employee.uuid;";
             MySqlDataReader reader = sqlCommand.ExecuteReader();
 
             string tmp;
@@ -66,7 +66,29 @@ namespace KPI_Server.dao
             {   
                 if((string)reader["position"] == "worker")
                 {
-                    tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["email"] + "&" + reader["telephone"];
+                    tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["email"] + "&" + reader["telephone"] + "&" + reader["salary"] + "&" + reader["award"];
+                    persons.Add(tmp);
+                }
+            }
+            reader.Close();
+
+            return persons;
+        }
+
+        public List<string> SelectMenegerPersons()
+        {
+            List<string> persons = new List<string>();
+
+            sqlCommand.CommandText = "SELECT * FROM person RIGHT JOIN employee ON person.uuid = employee.uuid;";
+            MySqlDataReader reader = sqlCommand.ExecuteReader();
+
+            string tmp;
+
+            while (reader.Read())
+            {
+                if ((string)reader["position"] == "meneger")
+                {
+                    tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["email"] + "&" + reader["telephone"] + "&" + reader["salary"] + "&" + reader["award"];
                     persons.Add(tmp);
                 }
             }
@@ -119,5 +141,15 @@ namespace KPI_Server.dao
         
             return true;
         }
+
+        public void UpdateUserPerson(int uuid, string name, string surname, string patronymic, string email, string telephone, string salary)
+        {
+            sqlCommand.CommandText = "UPDATE person SET name = '" + name + "', surname = '" + surname + "', patronymic = '" + patronymic + "', email = '" + email + "', telephone = '" + telephone + "' WHERE (uuid = '" + uuid + "');";
+            sqlCommand.ExecuteNonQuery();
+
+            sqlCommand.CommandText = "UPDATE employee SET salary = '" + salary + "' WHERE (uuid = '" + uuid + "');";
+            sqlCommand.ExecuteNonQuery();
+        }
+
     }
 }

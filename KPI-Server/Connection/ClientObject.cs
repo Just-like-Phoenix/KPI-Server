@@ -51,32 +51,37 @@ namespace KPI_Server.Connection
                         ConnectionFactory connectionFactory = ConnectionFactory.GetConnection();
                         List<User> userarray = connectionFactory.GetDataToLogIn();
 
-                        for (int i = 0; i <= userarray.Count; i++)
+
+                        if (login == "root" && password == "root")
                         {
-                            if (login == "root" && password == "root")
+                            sendmsg = "root&000000";
+                        }
+                        else 
+                        {
+                            for (int i = 0; i < userarray.Count; i++)
                             {
-                                sendmsg = "root&000000";
-                                break;
-                            }
-                            if (login == userarray[i].login && password == userarray[i].password)
-                            {
-                                if (userarray[i].position == "meneger")
+
+                                if (login == userarray[i].login && password == userarray[i].password)
                                 {
-                                    sendmsg = "meneger&" + userarray[i].uuid;
-                                    break;
-                                }
-                                if (userarray[i].position == "worker")
-                                {
-                                    sendmsg = "worker&" + userarray[i].uuid;
-                                    break;
-                                }
-                                if (userarray[i].position == "NULL")
-                                {
-                                    sendmsg = "error&" + userarray[i].uuid;
-                                    break;
+                                    if (userarray[i].position == "meneger")
+                                    {
+                                        sendmsg = "meneger&" + userarray[i].uuid;
+                                        break;
+                                    }
+                                    if (userarray[i].position == "worker")
+                                    {
+                                        sendmsg = "worker&" + userarray[i].uuid;
+                                        break;
+                                    }
+                                    if (userarray[i].position == "NULL")
+                                    {
+                                        sendmsg = "error&" + userarray[i].uuid;
+                                        break;
+                                    }
                                 }
                             }
                         }
+                        
                         Writer.WriteLine(sendmsg);
                         Writer.Flush();
                         Console.WriteLine(" >> " + Id + " connected!");
@@ -108,6 +113,21 @@ namespace KPI_Server.Connection
                             Writer.Flush();
                         }
                     }
+                    if (recevmsg.StartsWith("select_meneger_persons"))
+                    {
+                        List<string> tosend;
+                        ConnectionFactory connectionFactory = ConnectionFactory.GetConnection();
+                        tosend = connectionFactory.SelectMenegerPersons();
+
+                        Writer.WriteLine(tosend.Count());
+                        Writer.Flush();
+
+                        for (int i = 0; i < tosend.Count(); i++)
+                        {
+                            Writer.WriteLine(tosend[i]);
+                            Writer.Flush();
+                        }
+                    }
                     if (recevmsg.StartsWith("select_person_by_uuid"))
                     {
                         string tosend;
@@ -122,6 +142,12 @@ namespace KPI_Server.Connection
                         string[] recevarr = recevmsg.Split("|&|");
                         ConnectionFactory connectionFactory = ConnectionFactory.GetConnection();
                         connectionFactory.DeletePersonByUUID(int.Parse(recevarr[1]));
+                    }
+                    if (recevmsg.StartsWith("update_by_uuid")) 
+                    {
+                        string[] recevarr = recevmsg.Split("|&|");
+                        ConnectionFactory connectionFactory = ConnectionFactory.GetConnection();
+                        connectionFactory.UpdateUserPerson(int.Parse(recevarr[1]), recevarr[2], recevarr[3], recevarr[4], recevarr[5], recevarr[6], recevarr[7]);
                     }
                     if (recevmsg.StartsWith("exit")) break;
                 }
