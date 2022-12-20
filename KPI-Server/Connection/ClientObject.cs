@@ -1,5 +1,6 @@
 ﻿using KPI_Server.Classes;
 using KPI_Server.dao;
+using MySql.Data.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -97,6 +98,44 @@ namespace KPI_Server.Connection
                         
                         await Writer.WriteLineAsync(sendmsg);
                         await Writer.FlushAsync();
+                    }
+                    if (recevmsg.StartsWith("add_task")) 
+                    {
+                        string[] recevarr = recevmsg.Split("|&|");
+                        ConnectionFactory connectionFactory = ConnectionFactory.GetConnection();
+                        connectionFactory.AddTask(int.Parse(recevarr[1]), int.Parse(recevarr[2]), int.Parse(recevarr[3]), recevarr[4], int.Parse(recevarr[5]), int.Parse(recevarr[6]), recevarr[7], recevarr[8]);
+                    }
+                    if (recevmsg.StartsWith("update_task"))
+                    {
+                        string[] recevarr = recevmsg.Split("|&|");
+                        ConnectionFactory connectionFactory = ConnectionFactory.GetConnection();
+                        connectionFactory.UpdTaskCompleted(int.Parse(recevarr[1]), int.Parse(recevarr[2]), int.Parse(recevarr[3]));
+                    }
+                    if (recevmsg.StartsWith("kpi"))
+                    {
+                        string[] recevarr = recevmsg.Split("|&|");
+                        string tosend;
+                        ConnectionFactory connectionFactory = ConnectionFactory.GetConnection();
+                        tosend = connectionFactory.KPIByUUID(int.Parse(recevarr[1]), double.Parse(recevarr[2]));
+
+                        Writer.WriteLine(tosend);
+                        Writer.Flush();
+                    }
+                    if (recevmsg.StartsWith("select_task_by_uuid"))
+                    {
+                        List<string> tosend; 
+                        string[] recevarr = recevmsg.Split("|&|");
+                        ConnectionFactory connectionFactory = ConnectionFactory.GetConnection();
+                        tosend = connectionFactory.SelectTasks(int.Parse(recevarr[1]));
+
+                        Writer.WriteLine(tosend.Count());
+                        Writer.Flush();
+
+                        for (int i = 0; i < tosend.Count(); i++)
+                        {
+                            Writer.WriteLine(tosend[i]);
+                            Writer.Flush();
+                        }
                     }
                     if (recevmsg.StartsWith("select_worker_persons"))
                     {

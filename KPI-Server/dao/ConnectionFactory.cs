@@ -1,12 +1,16 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using KPI_Server.Classes;
+using Microsoft.VisualBasic;
 using MySql.Data.MySqlClient;
+using MySql.Data.Types;
 using Org.BouncyCastle.Utilities.Collections;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 
 namespace KPI_Server.dao
@@ -35,7 +39,7 @@ namespace KPI_Server.dao
             }
         }
 
-        public List<User> GetDataToLogIn() 
+        public List<User> GetDataToLogIn()
         {
             sqlCommand.CommandText = "SELECT * FROM user RIGHT JOIN employee ON user.uuid = employee.uuid;";
             MySqlDataReader reader = sqlCommand.ExecuteReader();
@@ -53,8 +57,8 @@ namespace KPI_Server.dao
             return users;
         }
 
-        public List<string> SelectWorkerPersons() 
-        { 
+        public List<string> SelectWorkerPersons()
+        {
             List<string> persons = new List<string>();
 
             sqlCommand.CommandText = "SELECT * FROM person RIGHT JOIN employee ON person.uuid = employee.uuid;";
@@ -63,16 +67,37 @@ namespace KPI_Server.dao
             string tmp;
 
             while (reader.Read())
-            {   
-                if((string)reader["position"] == "worker")
+            {
+                if ((string)reader["position"] == "worker")
                 {
-                    tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["email"] + "&" + reader["telephone"] + "&" + reader["salary"] + "&" + reader["award"];
+                    tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["ueid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["email"] + "&" + reader["telephone"] + "&" + reader["salary"] + "&" + reader["award"];
                     persons.Add(tmp);
                 }
             }
             reader.Close();
 
             return persons;
+        }
+
+        public List<string> SelectTasks(int uuid)
+        {
+            List<string> tasks = new List<string>();
+
+            sqlCommand.CommandText = "SELECT * FROM task WHERE task.uuid = " + uuid;
+            MySqlDataReader reader = sqlCommand.ExecuteReader();
+
+            string tmp;
+
+            while (reader.Read())
+            {
+                DateTime start_date = DateTime.Parse(reader["task_start_date"].ToString());
+                DateTime end_date = DateTime.Parse(reader["task_end_date"].ToString());
+                tmp = reader["utid"] + "&" + reader["ueid"] + "&" + reader["uuid"] + "&" + reader["upid"] + "&" + reader["task_text"] + "&" + reader["task_count_to_do"] + "&" + start_date.ToShortDateString() + "&" + end_date.ToShortDateString() + "&" + reader["task_count_of_completed"];
+                tasks.Add(tmp);
+            }
+            reader.Close();
+
+            return tasks;
         }
 
         public List<string> SelectMenegerPersons()
@@ -88,7 +113,7 @@ namespace KPI_Server.dao
             {
                 if ((string)reader["position"] == "meneger")
                 {
-                    tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["email"] + "&" + reader["telephone"] + "&" + reader["salary"] + "&" + reader["award"];
+                    tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["ueid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["email"] + "&" + reader["telephone"] + "&" + reader["salary"] + "&" + reader["award"];
                     persons.Add(tmp);
                 }
             }
@@ -103,14 +128,22 @@ namespace KPI_Server.dao
             sqlCommand.CommandText = "SELECT * FROM person INNER JOIN employee ON person.uuid = employee.uuid and person.uuid = '" + uuid + "';";
             MySqlDataReader reader = sqlCommand.ExecuteReader();
             reader.Read();
-            tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["salary"] + "&" + reader["award"] + "&" + reader["email"] + "&" + reader["telephone"];
+            tmp = reader["upid"] + "&" + reader["uuid"] + "&" + reader["ueid"] + "&" + reader["name"] + "&" + reader["surname"] + "&" + reader["patronymic"] + "&" + reader["salary"] + "&" + reader["award"] + "&" + reader["email"] + "&" + reader["telephone"];
             reader.Close();
             return tmp;
         }
 
-        public void AddTask() 
+        public void AddTask(int uuid, int upid, int ueid, string task_text, int task_count_to_do, int task_count_of_completed, string task_start_date, string task_end_date)
         {
-        
+            DateTime start_date = DateTime.ParseExact(task_start_date, "MM/dd/yyyy", null);
+            sqlCommand.CommandText = " INSERT INTO task (ueid, uuid, upid, task_text, task_count_to_do, task_start_date, task_end_date, task_count_of_completed) VALUES ('" + ueid + "', '" + uuid + "', '" + upid + "', '" + task_text + "', '" + task_count_to_do + "', '" + start_date.ToString("yyyy-MM-dd") + "', '" + start_date.AddDays(30).ToString("yyyy-MM-dd") + "', '" + task_count_of_completed + "');";
+            sqlCommand.ExecuteNonQuery();
+        }
+
+        public void UpdTaskCompleted(int utid, int uuid, int compl)
+        {
+            sqlCommand.CommandText = "UPDATE task SET task_count_of_completed = '"+ compl +"' WHERE(`utid` = '"+ utid +"') and (`uuid` = '"+ uuid +"')";
+            sqlCommand.ExecuteNonQuery();
         }
 
         public string SelectTasksByUUID(int uuid)
@@ -168,5 +201,41 @@ namespace KPI_Server.dao
             sqlCommand.ExecuteNonQuery();
         }
 
+        public string KPIByUUID(int uuid, double salary)
+        {
+            string tmp;
+            double kpi = 0;
+            double award, k, weight;
+
+
+            sqlCommand.CommandText = "SELECT * FROM kpi.task WHERE uuid = '"+ uuid +"';";
+            MySqlDataReader reader = sqlCommand.ExecuteReader();
+            List<PersonTask> tasks = new List<PersonTask>();
+            while (reader.Read())
+            {
+                PersonTask task = new PersonTask();
+                task.utid = (int)reader["utid"];
+                task.ueid = (int)reader["ueid"];
+                task.uuid = (int)reader["uuid"];
+                task.upid = (int)reader["upid"];
+                task.task_text = (string)reader["task_text"];
+                task.task_count_to_do = (int)reader["task_count_to_do"];
+                task.task_count_of_completed = (int)reader["task_count_of_completed"];
+                tasks.Add(task);
+            }
+            reader.Close();
+            weight = (double)1 / (double)tasks.Count();
+            for (int i = 0; i < tasks.Count(); i++)
+            {
+                k = (double)tasks[i].task_count_of_completed / (double)tasks[i].task_count_to_do;
+                kpi += weight * k;
+            }
+
+            award = ((double)salary * (double)kpi) * (double)0.3;
+
+            tmp = award + "&" + kpi;
+
+            return tmp;
+        }
     }
 }

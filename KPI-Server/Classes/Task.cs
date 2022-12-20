@@ -1,6 +1,6 @@
 ﻿namespace KPI_Server.Classes
 {
-    public class Task
+    public class PersonTask
     {
         public int utid { get; set; }
         public int ueid { get; set; }
@@ -12,7 +12,7 @@
         public int task_count_to_do { get; set; }
         public int task_count_of_completed { get; set; }
 
-        public Task() 
+        public PersonTask() 
         { 
             utid = 0;
             ueid = 0;   
@@ -25,7 +25,7 @@
             task_count_of_completed = 30;
         }
 
-        public Task(int utid, int ueid, int uuid, int upid, string task_text, DateOnly task_start_date, DateOnly task_end_date, int task_count_to_do, int task_count_of_completed)
+        public PersonTask(int utid, int ueid, int uuid, int upid, string task_text, DateOnly task_start_date, DateOnly task_end_date, int task_count_to_do, int task_count_of_completed)
         {
             this.utid = utid;
             this.ueid = ueid;
@@ -38,7 +38,7 @@
             this.task_count_of_completed = task_count_of_completed;
         }
 
-        public Task(Task task)
+        public PersonTask(PersonTask task)
         {
             this.utid = task.utid;
             this.ueid = task.ueid;
